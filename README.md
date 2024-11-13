@@ -1,5 +1,5 @@
 # Nerve Signal Velocity Analysis Tools
-### Klus et al., 2024
+### Klus et al. (2024)
 
 ## Synthetic nerve signal simulation classes
 Python classes to simulate and analyze nerve signals and their propagation through a cuff electrode.
