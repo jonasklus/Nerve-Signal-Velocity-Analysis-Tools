@@ -47,11 +47,6 @@ if load_simulation_data:
     multi_run_stats_df = pd.read_excel('multi_run_stats.xlsx')
     multiple_run_signal_df = pd.read_excel('multi_run_peaks.xlsx')
 
-    # Change all values "nan" to np.nan
-    multi_run_stats_df = multi_run_stats_df.replace("nan", np.nan)
-    multiple_run_signal_df = multiple_run_signal_df.replace("nan", np.nan)
-
-
 # Plot line charts for each velocity with different lines for methods and threshold on x-axis
 for method in loop_methods:
     # Plot the data across all signal speeds
