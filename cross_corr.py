@@ -8,7 +8,7 @@ from synthetic_data_simulation import SingleExtraCellularSpike, SyntheticPropaga
 
 
 # Define the signal creator function
-def signal_creator(spike_rms, length_multiplier=1):
+def signal_creator(spike_mult, length_multiplier=1):
     # Total number of samples in the base signal
     base_length = 15000 * 20  # 300,000 samples
     spike_signal_1 = np.zeros(base_length)
@@ -18,7 +18,7 @@ def signal_creator(spike_rms, length_multiplier=1):
     time_axis = np.linspace(0, 5 * 20 * length_multiplier, base_length * length_multiplier)
 
     # Create and resample the spike to make it narrower
-    original_spike = SingleExtraCellularSpike(spike_rms).spike_signal
+    original_spike = SingleExtraCellularSpike(spike_mult).spike_signal
     resample_factor = 0.6  # Reduced to make spikes narrower
     new_spike_length = int(len(original_spike) * resample_factor)
     spike = signal.resample(original_spike, new_spike_length)
@@ -67,7 +67,7 @@ def signal_creator(spike_rms, length_multiplier=1):
     noise_1 = signal.lfilter(b, a, noise_1)
     noise_2 = signal.lfilter(b, a, noise_2)
 
-    # Normalize the noise to have the desired RMS
+    # Normalize and scale the noise
     noise_1 = noise_1 / np.sqrt(np.mean(noise_1 ** 2)) * 6
     noise_2 = noise_2 / np.sqrt(np.mean(noise_2 ** 2)) * 6
 
@@ -244,28 +244,28 @@ axs[0, 0].plot(time_axis, spike_signal_a_2, color="orange", linewidth=1)
 axs[0, 0].axhline(y=0, color="black", linewidth=1.5)
 axs[0, 0].set_ylim(signal_ylim_min, signal_ylim_max)
 axs[0, 0].set_xlim(0, signal_xlim_max)
-axs[0, 0].text(0.5, 0.93, "Spike RMS = 12 (100 ms)", horizontalalignment='center', verticalalignment='center',
+axs[0, 0].text(0.5, 0.93, "Spike Scaling Factor = 12 (100 ms)", horizontalalignment='center', verticalalignment='center',
                transform=axs[0, 0].transAxes)
 axs[0, 1].plot(time_axis, spike_signal_a_1, linewidth=1)
 axs[0, 1].plot(time_axis, spike_signal_a_2, color="orange", linewidth=1)
 axs[0, 1].axhline(y=0, color="black", linewidth=1.5)
 axs[0, 1].set_ylim(signal_ylim_min, signal_ylim_max)
 axs[0, 1].set_xlim(0, signal_xlim_max)
-axs[0, 1].text(0.5, 0.93, "Spike RMS = 12 (100 ms)", horizontalalignment='center', verticalalignment='center',
+axs[0, 1].text(0.5, 0.93, "Spike Scaling Factor = 12 (100 ms)", horizontalalignment='center', verticalalignment='center',
                transform=axs[0, 1].transAxes)
 axs[0, 2].plot(time_axis, spike_signal_b_1, linewidth=1)
 axs[0, 2].plot(time_axis, spike_signal_b_2, color="orange", linewidth=1)
 axs[0, 2].axhline(y=0, color="black", linewidth=1.5)
 axs[0, 2].set_ylim(signal_ylim_min, signal_ylim_max)
 axs[0, 2].set_xlim(0, signal_xlim_max)
-axs[0, 2].text(0.5, 0.93, "Spike RMS = 2 (100 ms)", horizontalalignment='center', verticalalignment='center',
+axs[0, 2].text(0.5, 0.93, "Spike Scaling Factor = 2 (100 ms)", horizontalalignment='center', verticalalignment='center',
                transform=axs[0, 2].transAxes)
 axs[0, 3].plot(time_axis, spike_signal_c_1, linewidth=1)
 axs[0, 3].plot(time_axis, spike_signal_c_2, color="orange", linewidth=1)
 axs[0, 3].axhline(y=0, color="black", linewidth=1.5)
 axs[0, 3].set_ylim(signal_ylim_min, signal_ylim_max)
 axs[0, 3].set_xlim(0, signal_xlim_max)
-axs[0, 3].text(0.5, 0.93, "Spike RMS = 0 (100 ms)", horizontalalignment='center', verticalalignment='center',
+axs[0, 3].text(0.5, 0.93, "Spike Scaling Factor = 0 (100 ms)", horizontalalignment='center', verticalalignment='center',
                transform=axs[0, 3].transAxes)
 
 # Plot full signals
@@ -334,7 +334,7 @@ for multiplier in length_multipliers:
     plt.plot(time_axis_corr, raw_cross_corr, color="black")
     plt.xlim(-5, 5)
     plt.ylim(-3e7, 9e7)
-    plt.title(f"Spike RMS = 2 ({title} ms)")
+    plt.title(f"Spike Scaling Factor = 2 ({title} ms)")
     plt.show()
 
 
@@ -348,7 +348,7 @@ plt.plot(time_axis, spike_signal_2, color="orange", linewidth=1)
 plt.axhline(y=0, color="black", linewidth=1.5, linestyle="--")
 plt.ylim(-70, 30)
 plt.xlim(0, np.max(time_axis))
-plt.title("Spike RMS = 2 (10k ms)")
+plt.title("Spike Scaling Factor = 2 (10k ms)")
 plt.ylabel("Amplitude (µV)")
 plt.xlabel("Time (ms)")
 plt.show()
@@ -362,98 +362,79 @@ plt.ylim(-70, 30)
 plt.xlim(0, np.max(time_axis))
 plt.ylabel("Amplitude (µV)")
 plt.xlabel("Time (ms)")
-plt.title("Spike RMS = 2 (10k ms)")
+plt.title("Spike Scaling Factor = 2 (10k ms)")
 plt.show()
 
+# Define the range of length multipliers (from 5 to 300 in steps of 5)
+length_multipliers = np.arange(1, 301, 1)
+peak_values_dict = {}
 
-# Activate code to run the cross-correlation for different RMS values (long runtime)
-run_comparison = False
+# Define multiple value
+mult_for_loop_list = [1.5, 2, 2.5, 3]
 
-# Run the comparison
-if run_comparison:
-    # Define the range of length multipliers (from 5 to 300 in steps of 5)
-    length_multipliers = np.arange(1, 301, 1)
-    peak_values_dict = {}
+for mult_for_loop in mult_for_loop_list:
+    # Reinitialize peak_values as an empty list for each multiple value
+    peak_values = []
 
-    # Define RMS value
-    rms_for_loop_list = [1.5, 2, 2.5, 3]
+    # Loop through each length multiplier
+    for length_multiplier in length_multipliers:
+        # Generate signals based on the current length multiplier
+        time_axis, signal_1, signal_2, spike_signal_1, spike_signal_2 = signal_creator(mult_for_loop, length_multiplier)
 
-    for rms_for_loop in rms_for_loop_list:
-        # Reinitialize peak_values as an empty list for each RMS value
-        peak_values = []
+        # Compute cross-correlation between signal_2 and signal_1
+        raw_cross_corr = signal.correlate(signal_2, signal_1, mode='full', method='fft')
 
-        # Loop through each length multiplier
-        for length_multiplier in length_multipliers:
-            # Generate signals based on the current length multiplier
-            time_axis, signal_1, signal_2, spike_signal_1, spike_signal_2 = signal_creator(rms_for_loop, length_multiplier)
+        # Create a time axis for the cross-correlation result
+        time_axis_corr = np.linspace(-5 * 20 * length_multiplier, 5 * 20 * length_multiplier, len(raw_cross_corr))
 
-            # Compute cross-correlation between signal_2 and signal_1
-            raw_cross_corr = signal.correlate(signal_2, signal_1, mode='full', method='fft')
+        # Filter the cross-correlation to keep values within the window [-5, 5] and set others to zero
+        filtered_cross_corr = np.where(
+            (time_axis_corr >= 1.9) & (time_axis_corr <= 2.1),
+            raw_cross_corr,
+            0
+        )
 
-            # Create a time axis for the cross-correlation result
-            time_axis_corr = np.linspace(-5 * 20 * length_multiplier, 5 * 20 * length_multiplier, len(raw_cross_corr))
+        # Create a new array without zeros
+        non_zero_cross_corr = filtered_cross_corr[filtered_cross_corr != 0]
 
-            # Filter the cross-correlation to keep values within the window [-5, 5] and set others to zero
-            filtered_cross_corr = np.where(
-                (time_axis_corr >= 1.9) & (time_axis_corr <= 2.1),
-                raw_cross_corr,
-                0
-            )
+        # Identify the peak value and its corresponding lag within the filtered window
+        peak_pos = np.argmax(non_zero_cross_corr)
+        peak_value = non_zero_cross_corr[peak_pos]
+        peak_values.append(peak_value)
 
-            # Create a new array without zeros
-            non_zero_cross_corr = filtered_cross_corr[filtered_cross_corr != 0]
+    # Add the peak values to the dictionary
+    peak_values_dict[mult_for_loop] = peak_values
 
-            # Identify the peak value and its corresponding lag within the filtered window
-            peak_pos = np.argmax(non_zero_cross_corr)
-            peak_value = non_zero_cross_corr[peak_pos]
-            peak_values.append(peak_value)
+# Convert the peak values dict to a dataframe
+df = pd.DataFrame(peak_values_dict)
 
-        # Add the peak values to the dictionary
-        peak_values_dict[rms_for_loop] = peak_values
+# Walk through each column and check if value is 0, if so, set all previous values to 0 as well
+for column in df.columns:
+    for i in range(1, len(df[column])):
+        if df[column].iloc[i] == 0:
+            df[column].iloc[:i] = 0
 
-    # Convert the peak values dict to a dataframe
-    df = pd.DataFrame(peak_values_dict)
+# Extract columns from the dataframe
+peak_values_1_5 = df[1.5].values
+peak_values_2 = df[2].values
+peak_values_2_5 = df[2.5].values
+peak_values_3 = df[3].values
 
-    # Save the peak values dict as a csv file
-    df.to_csv("peak_values.csv", index=False)
+# Plot the peak values as line plot with length multiplier on x-axis as seconds (10 = 1 second)
+# and one line for each Scaling Factor value
+plt.figure(figsize=(10, 5))
+plt.plot(peak_values_1_5, label="Scaling Factor = 1.5", markersize=3)
+plt.plot(peak_values_2, label="Scaling Factor = 2")
+plt.plot(peak_values_2_5, label="Scaling Factor = 2.5")
+plt.plot(peak_values_3, label="Scaling Factor = 3")
+plt.xlabel("Length multiplier [s]")
+plt.ylabel("Peak value")
+# Set x ticks to current value / 10
+plt.xticks(ticks=np.arange(0, 301, 50), labels=(np.arange(0, 301, 50) / 10).astype(int))
+###plt.yscale("log")
+# Add a horizontal line at 0.40e8
+plt.axhline(y=0.10e8 * 4, color="black", linestyle="--", linewidth=1)
 
-# Activate code to plot the peak values
-plot_peak_values = True
-
-# Plot the peak values
-if plot_peak_values:
-    # Load the peak values from csv
-    peak_values_dict = pd.read_csv("../data/peak_values.csv")
-
-    # Create a dataframe from the dictionary
-    df = pd.DataFrame(peak_values_dict)
-
-    # Walk through each column and check if value is 0, if so, set all previous values to 0 as well
-    for column in df.columns:
-        for i in range(1, len(df[column])):
-            if df[column].iloc[i] == 0:
-                df[column].iloc[:i] = 0
-
-    # Extract columns from the dataframe
-    peak_values_1_5 = df["1.5"].values
-    peak_values_2 = df["2"].values
-    peak_values_2_5 = df["2.5"].values
-    peak_values_3 = df["3"].values
-
-    # Plot the peak values as line plot with length multiplier on x-axis as seconds (10 = 1 second) and one line for each RMS value
-    plt.figure(figsize=(10, 5))
-    plt.plot(peak_values_1_5, label="RMS = 1.5", markersize=3)
-    plt.plot(peak_values_2, label="RMS = 2")
-    plt.plot(peak_values_2_5, label="RMS = 2.5")
-    plt.plot(peak_values_3, label="RMS = 3")
-    plt.xlabel("Length multiplier [s]")
-    plt.ylabel("Peak value")
-    # Set x ticks to current value / 10
-    plt.xticks(ticks=np.arange(0, 301, 50), labels=(np.arange(0, 301, 50) / 10).astype(int))
-    ###plt.yscale("log")
-    # Add a horizontal line at 0.40e8
-    plt.axhline(y=0.10e8 * 4, color="black", linestyle="--", linewidth=1)
-
-    plt.legend()
-    plt.title("Peak value of cross-correlation")
-    plt.show()
+plt.legend()
+plt.title("Peak value of cross-correlation")
+plt.show()

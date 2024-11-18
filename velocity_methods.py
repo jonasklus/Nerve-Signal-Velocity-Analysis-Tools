@@ -27,25 +27,12 @@ sd_thresholds = np.arange(1.0, 7.01 , 0.05)  # Standard deviation thresholds for
 signal_speeds = [1, 5, 10, 30, 60, 120] # m/s
 loop_methods = ['AHC', 'SINC', 'SPLINE', 'CORR']
 
-# Activate code to run the simulation (long runtime)
-run_simulation = False
+# Run the simulation
+multi_run_stats = MultiRunStatsCreator(num_runs, sd_thresholds, signal_speeds)
 
-if run_simulation:
-    # Run the simulation
-    multi_run_stats = MultiRunStatsCreator(num_runs, sd_thresholds, signal_speeds)
-
-    # Export to Excel
-    multi_run_stats.statistics_df.to_excel('multi_run_stats.xlsx', index=False)
-    multi_run_stats.multiple_run_signal_df.to_excel('multi_run_peaks.xlsx', index=False)
-
-
-# Activate code to load the simulation data
-load_simulation_data = True
-
-# Load the simulation data
-if load_simulation_data:
-    multi_run_stats_df = pd.read_excel('multi_run_stats.xlsx')
-    multiple_run_signal_df = pd.read_excel('multi_run_peaks.xlsx')
+# Define outputs
+multi_run_stats_df = multi_run_stats.statistics_df
+multiple_run_signal_df = multi_run_stats.multiple_run_signal_df
 
 # Plot line charts for each velocity with different lines for methods and threshold on x-axis
 for method in loop_methods:
@@ -54,13 +41,13 @@ for method in loop_methods:
                                   (multi_run_stats_df['Method'] == method)]
 
     plt.figure(figsize=(20, 13))
-    plt.plot(total_df['SD Threshold'], total_df['A: True Spike, True Velocity'], label='A: True Spike,\nTrue Velocity')
-    plt.plot(total_df['SD Threshold'], total_df['B: True Spike, Wrong Velocity'],
-             label='B: True Spike,\nFalse Velocity')
-    plt.plot(total_df['SD Threshold'], total_df['C: True Spike, Wrong Velocity (Infinite Velocity)'],
-             label='C: True Spike,\nFalse Velocity\n(Inf. Velocity)')
-    plt.plot(total_df['SD Threshold'], total_df['D: Missed Spike'], label='D: Missed\nSpike')
-    plt.plot(total_df['SD Threshold'], total_df['E: False Spike'], label='E: False Spike')
+    plt.plot(total_df['SD Threshold'], total_df['True Spike, True Velocity'], label='True Spike,\nTrue Velocity')
+    plt.plot(total_df['SD Threshold'], total_df['True Spike, Wrong Velocity'],
+             label='True Spike,\nFalse Velocity')
+    plt.plot(total_df['SD Threshold'], total_df['True Spike, Wrong Velocity (Infinite Velocity)'],
+             label='True Spike,\nFalse Velocity\n(Inf. Velocity)')
+    plt.plot(total_df['SD Threshold'], total_df['Missed Spike'], label='Missed Spike')
+    plt.plot(total_df['SD Threshold'], total_df['False Spike'], label='False Spike')
     plt.xlim(2, 7)
     plt.ylim(0, 1)
     plt.xlabel('σ Threshold')
@@ -86,13 +73,13 @@ for method in loop_methods:
         ax = axs[plot_index]
 
         # Plot the data
-        ax.plot(signal_df['SD Threshold'], signal_df['A: True Spike, True Velocity'],
-                label='A: True Spike,\nTrue Velocity')
-        ax.plot(signal_df['SD Threshold'], signal_df['B: True Spike, Wrong Velocity'],
-                label='B: True Spike,\nFalse Velocity')
-        ax.plot(signal_df['SD Threshold'], signal_df['C: True Spike, Wrong Velocity (Infinite Velocity)'],
-                label='C: True Spike,\nFalse Velocity\n(Inf. Velocity)')
-        ax.plot(signal_df['SD Threshold'], signal_df['D: Missed Spike'], label='D: Missed\nSpike')
+        ax.plot(signal_df['SD Threshold'], signal_df['True Spike, True Velocity'],
+                label='True Spike,\nTrue Velocity')
+        ax.plot(signal_df['SD Threshold'], signal_df['True Spike, Wrong Velocity'],
+                label='True Spike,\nFalse Velocity')
+        ax.plot(signal_df['SD Threshold'], signal_df['True Spike, Wrong Velocity (Infinite Velocity)'],
+                label='True Spike,\nFalse Velocity\n(Inf. Velocity)')
+        ax.plot(signal_df['SD Threshold'], signal_df['Missed Spike'], label='Missed Spike')
         ax.set_xlim(2, 7)
         ax.set_ylim(0, 1)
         ax.set_xlabel('σ Threshold')
@@ -142,15 +129,15 @@ for method in loop_methods:
     filtered_df = filtered_df[filtered_df['Velocity'] != 'Total']
 
     # Define the KPI list based on the column names
-    kpis = ['A: True Spike, True Velocity', 'B: True Spike, Wrong Velocity',
-            'C: True Spike, Wrong Velocity (Infinite Velocity)', 'D: Missed Spike']
+    kpis = ['True Spike, True Velocity', 'True Spike, Wrong Velocity',
+            'True Spike, Wrong Velocity (Infinite Velocity)', 'Missed Spike']
 
     # Mapping KPI codes to full names
     kpi_names = {
-        'A: True Spike, True Velocity': "A: True Spike,\nTrue Velocity",
-        'B: True Spike, Wrong Velocity': "B: True Spike,\nWrong Velocity",
-        'C: True Spike, Wrong Velocity (Infinite Velocity)': "C: True Spike,\nWrong Velocity\n(Infinite Velocity)",
-        'D: Missed Spike': "D: Missed\nSpike"
+        'True Spike, True Velocity': "True Spike,\nTrue Velocity",
+        'True Spike, Wrong Velocity': "True Spike,\nWrong Velocity",
+        'True Spike, Wrong Velocity (Infinite Velocity)': "True Spike,\nWrong Velocity\n(Infinite Velocity)",
+        'Missed Spike': "Missed Spike"
     }
 
     # Reshape the DataFrame using melt
@@ -199,8 +186,8 @@ filtered_df = multi_run_stats_df[(multi_run_stats_df['Velocity'] == 'Total') &
                                  (multi_run_stats_df['SD Threshold'] == 4.00000)]
 
 # Define the KPI list based on the column names
-kpis = ['A: True Spike, True Velocity', 'B: True Spike, Wrong Velocity',
-        'C: True Spike, Wrong Velocity (Infinite Velocity)', 'D: Missed Spike', 'E: False Spike']
+kpis = ['True Spike, True Velocity', 'True Spike, Wrong Velocity',
+        'True Spike, Wrong Velocity (Infinite Velocity)', 'Missed Spike', 'False Spike']
 
 # Create a figure for the bar chart
 fig, ax = plt.subplots(figsize=(8, 5))
@@ -223,11 +210,11 @@ method_names = {
 
 # Mapping KPI codes to full names
 kpi_names = {
-    'A: True Spike, True Velocity': "A: True Spike,\nTrue Velocity",
-    'B: True Spike, Wrong Velocity': "B: True Spike,\nWrong Velocity",
-    'C: True Spike, Wrong Velocity (Infinite Velocity)': "C: True Spike,\nWrong Velocity\n(Infinite Velocity)",
-    'D: Missed Spike': "D: Missed\nSpike",
-    'E: False Spike': "E: False\nSpike",
+    'True Spike, True Velocity': "True Spike,\nTrue Velocity",
+    'True Spike, Wrong Velocity': "True Spike,\nWrong Velocity",
+    'True Spike, Wrong Velocity (Infinite Velocity)': "True Spike,\nWrong Velocity\n(Infinite Velocity)",
+    'Missed Spike': "Missed Spike",
+    'False Spike': "False\nSpike",
 }
 
 # Plot each Method as a separate group of bars

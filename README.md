@@ -1,16 +1,17 @@
-# Nerve Signal Velocity Analysis Tools
-### Klus et al. (2024)
+# Nerve-Signal-Velocity-Analyses
+### Klus et al., 2024
 
-## Synthetic nerve signal simulation classes
+## Synthetic nerve simulation classes
 Python classes to simulate and analyze nerve signals and their propagation through a cuff electrode.
 - **synthetic_data_simulation.py** - Contains classes to simulate nerve signals and their propagation through a cuff electrode.
 - **isi_analysis.py** - Contains interpolation and velocity analysis methods for simulated nerve signals.
 - **multi_run_stats.py** - Contains methods to run multiple simulations, outputting the aggregated statistics and the simulated data.
 
 ## Data analysis tools
-Python scripts to analyze and plot the data from the simulations.
+Python classes to analyze and plot the data from the simulations.
 - **cross_corr.py** - Runs cross-correlation analysis on the simulated data and plots results.
-- **velocity_methods.py** - Runs the comparative velocity analysis on the simulated data and plots results.
+- **velocity_methods.py** -  on the simulated data and plots results.
+- **in_vivo_velocity.py** - Runs the comparative velocity analysis on the in vivo data (spike_interval_processed.mat)
 - **sampling_limitations.py** - Plots the explanatory figures for the sampling limitations of the velocity analysis.
 
 ## In vivo electrophysiology validation

@@ -1,6 +1,5 @@
 
 # Import libraries
-import tqdm
 import copy
 import numpy as np
 import pandas as pd
@@ -37,7 +36,7 @@ class MultiRunStatsCreator:
         create_new_df = True
 
         # Loop through runs per standard deviation threshold
-        for run in tqdm.tqdm(range(self.runs_per_sd)):
+        for run in ange(self.runs_per_sd):
             # Create synthetic nerve signal
             nerve_signal = SyntheticPropagatingNerveSignal(self.velocities)
 
@@ -66,9 +65,9 @@ class MultiRunStatsCreator:
     def create_statistics(self):
         # Create columns for statistics data frame
         self.statistics_df = pd.DataFrame(columns=["Method", "Velocity", "SD Threshold",
-                                                    "A: True Spike, True Velocity", "B: True Spike, Wrong Velocity",
-                                                    "C: True Spike, Wrong Velocity (Infinite Velocity)",
-                                                    "D: Missed Spike", "E: False Spike"])
+                                                    "True Spike, True Velocity", "True Spike, Wrong Velocity",
+                                                    "True Spike, Wrong Velocity (Infinite Velocity)",
+                                                    "Missed Spike", "False Spike"])
 
         # Add "Total" to velocity list at first position and create new list
         loop_velocities = self.velocities.copy()
@@ -92,24 +91,24 @@ class MultiRunStatsCreator:
 
                     # Create column "Total Spike" and set to 1 if "True Velocity" is not NaN
                     filtered_df["Total Spike"] = np.where(filtered_df["True Velocity"].notna(), 1, 0)
-                    filtered_df["A: True Spike, True Velocity"] = np.where((filtered_df[f"{method} Correct Velocity Detected"] == True), 1, 0)
-                    filtered_df["B: True Spike, Wrong Velocity"] = np.where((filtered_df[f"{method} Correct Velocity Detected"] == False), 1, 0)
-                    filtered_df["C: True Spike, Wrong Velocity (Infinite Velocity)"] = np.where((filtered_df[f"{method} Correct Velocity Detected"] == False) &
+                    filtered_df["True Spike, True Velocity"] = np.where((filtered_df[f"{method} Correct Velocity Detected"] == True), 1, 0)
+                    filtered_df["True Spike, Wrong Velocity"] = np.where((filtered_df[f"{method} Correct Velocity Detected"] == False), 1, 0)
+                    filtered_df["True Spike, Wrong Velocity (Infinite Velocity)"] = np.where((filtered_df[f"{method} Correct Velocity Detected"] == False) &
                                                                                              (filtered_df[f"{method} Detected Velocity"] == np.inf), 1, 0)
-                    filtered_df["D: Missed Spike"] = np.where((filtered_df["True Velocity"].notna()) &
+                    filtered_df["Missed Spike"] = np.where((filtered_df["True Velocity"].notna()) &
                                                               (filtered_df[f"{method} Correct Velocity Detected"].isna()), 1, 0)
 
                     if method == "AHC" or method == "SINC":
-                        filtered_df["E: False Spike"] = np.where((filtered_df[f"{method} Actual Spike Detected"] == False), 1, 0)
+                        filtered_df["False Spike"] = np.where((filtered_df[f"{method} Actual Spike Detected"] == False), 1, 0)
                     else:
-                        filtered_df["E: False Spike"] = np.where((filtered_df[f"AHC Actual Spike Detected"] == False), 1, 0)
+                        filtered_df["False Spike"] = np.where((filtered_df[f"AHC Actual Spike Detected"] == False), 1, 0)
 
                     # Calculate rates for each category
-                    true_spike_true_vel_rate = filtered_df["A: True Spike, True Velocity"].sum() / filtered_df["Total Spike"].sum()
-                    true_spike_wrong_vel_rate = filtered_df["B: True Spike, Wrong Velocity"].sum() / filtered_df["Total Spike"].sum()
-                    true_spike_wrong_vel_inf_rate = filtered_df["C: True Spike, Wrong Velocity (Infinite Velocity)"].sum() / filtered_df["Total Spike"].sum()
-                    missed_spike_rate = filtered_df["D: Missed Spike"].sum() / filtered_df["Total Spike"].sum()
-                    false_spike_rate = filtered_df["E: False Spike"].sum() / filtered_df["Total Spike"].sum()
+                    true_spike_true_vel_rate = filtered_df["True Spike, True Velocity"].sum() / filtered_df["Total Spike"].sum()
+                    true_spike_wrong_vel_rate = filtered_df["True Spike, Wrong Velocity"].sum() / filtered_df["Total Spike"].sum()
+                    true_spike_wrong_vel_inf_rate = filtered_df["True Spike, Wrong Velocity (Infinite Velocity)"].sum() / filtered_df["Total Spike"].sum()
+                    missed_spike_rate = filtered_df["Missed Spike"].sum() / filtered_df["Total Spike"].sum()
+                    false_spike_rate = filtered_df["False Spike"].sum() / filtered_df["Total Spike"].sum()
 
                     # Append statistics to statistics data frame
                     self.statistics_df.loc[len(self.statistics_df)] = [method, velocity, sd_threshold, true_spike_true_vel_rate,
